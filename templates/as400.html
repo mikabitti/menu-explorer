@@ -279,8 +279,30 @@
             51%, 100% { opacity: 0; }
         }
 
+        .path-display {
+            border-top: 1px solid #00ff00;
+            padding: 10px 20px;
+            font-size: 12px;
+            color: #00ffff;
+            min-height: 40px;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+
+        .path-label {
+            color: #00ff00;
+            font-weight: bold;
+            display: inline;
+        }
+
+        .path-value {
+            color: #ffff00;
+            display: inline;
+            word-break: break-all;
+        }
+
         .status-line {
-            border-top: 2px solid #00dd00;
+            border-top: 1px solid #00ff00;
             padding: 10px 20px;
             display: flex;
             justify-content: space-between;
@@ -537,6 +559,10 @@
             </div>
         </div>
 
+        <div class="path-display" id="pathDisplay">
+            <span class="path-label">PATH:</span> <span class="path-value" id="pathValue">NO ITEM SELECTED</span>
+        </div>
+
         <div class="status-line">
             <div>READY</div>
             <div>MENU EXPLORER V1.0</div>
@@ -674,6 +700,16 @@
                 }
                 .settings-btn:hover {
                     transform: translateY(-50%) scale(1.05) !important;
+                }
+                .path-display {
+                    border-color: ${colors.textColor} !important;
+                    color: ${colors.accentColor} !important;
+                }
+                .path-label {
+                    color: ${colors.textColor} !important;
+                }
+                .path-value {
+                    color: #ffff00 !important;
                 }
                 ::-webkit-scrollbar-track {
                     border-color: ${colors.textColor} !important;
@@ -861,11 +897,18 @@
             container.appendChild(ul);
         }
 
-        function createNodeElement(node) {
+        function createNodeElement(node, path = []) {
             const li = document.createElement('li');
+            const currentPath = [...path, node.name];
 
             const nodeDiv = document.createElement('div');
             nodeDiv.className = 'node' + (node.highlighted ? ' highlighted' : '');
+
+            // Add click handler to show path
+            nodeDiv.addEventListener('click', function(e) {
+                e.stopPropagation();
+                displayPath(currentPath);
+            });
 
             // Toggle button
             const hasChildren = node.children && node.children.length > 0;
@@ -913,13 +956,19 @@
                 childrenUl.className = 'children';
 
                 node.children.forEach(child => {
-                    childrenUl.appendChild(createNodeElement(child));
+                    childrenUl.appendChild(createNodeElement(child, currentPath));
                 });
 
                 li.appendChild(childrenUl);
             }
 
             return li;
+        }
+
+        function displayPath(path) {
+            const pathValue = document.getElementById('pathValue');
+            const pathString = path.join(' > ').toUpperCase();
+            pathValue.textContent = pathString;
         }
 
         function toggleNode(li) {
