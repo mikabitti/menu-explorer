@@ -1,0 +1,955 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menu Explorer - AS/400 Theme</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', 'Consolas', 'Monaco', monospace;
+            background: #000000;
+            color: #00ff00;
+            padding: 20px;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            border: 2px solid #00ff00;
+            padding: 0;
+            position: relative;
+        }
+
+        .header {
+            background: #00ff00;
+            color: #000000;
+            padding: 10px 20px;
+            font-weight: bold;
+            font-size: 16px;
+            border-bottom: 2px solid #00ff00;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .system-info {
+            padding: 10px 20px;
+            border-bottom: 1px solid #00ff00;
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+        }
+
+        .controls {
+            padding: 20px;
+            border-bottom: 2px solid #00ff00;
+        }
+
+        .control-row {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+
+        .control-row:last-child {
+            margin-bottom: 0;
+        }
+
+        label {
+            display: inline-block;
+            width: 200px;
+            color: #00ff00;
+            font-weight: bold;
+        }
+
+        input[type="text"], select {
+            background: #000000;
+            color: #00ff00;
+            border: 1px solid #00ff00;
+            padding: 5px 10px;
+            font-family: 'Courier New', 'Consolas', 'Monaco', monospace;
+            font-size: 14px;
+            min-width: 300px;
+        }
+
+        input[type="text"]:focus, select:focus {
+            outline: none;
+            background: #003300;
+            box-shadow: 0 0 5px #00ff00;
+        }
+
+        button {
+            padding: 5px 15px;
+            background: #00ff00;
+            color: #000000;
+            border: 2px solid #00ff00;
+            cursor: pointer;
+            font-family: 'Courier New', 'Consolas', 'Monaco', monospace;
+            font-size: 14px;
+            font-weight: bold;
+            margin-left: 10px;
+            text-transform: uppercase;
+            transition: all 0.2s;
+        }
+
+        button:hover {
+            background: #00cc00;
+            box-shadow: 0 0 10px #00ff00;
+        }
+
+        button:active {
+            background: #009900;
+        }
+
+        .function-keys {
+            padding: 10px 20px;
+            border-top: 1px solid #00ff00;
+            border-bottom: 2px solid #00ff00;
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            font-size: 12px;
+        }
+
+        .function-key {
+            color: #00ff00;
+        }
+
+        .function-key span {
+            color: #00ffff;
+            font-weight: bold;
+        }
+
+        .stats {
+            padding: 10px 20px;
+            border-bottom: 1px solid #00ff00;
+            display: flex;
+            gap: 40px;
+            font-size: 12px;
+        }
+
+        .stat-item {
+            display: flex;
+            gap: 10px;
+        }
+
+        .stat-label {
+            color: #00ffff;
+        }
+
+        .stat-value {
+            color: #ffff00;
+            font-weight: bold;
+        }
+
+        .tree-container {
+            padding: 20px;
+            min-height: 400px;
+        }
+
+        .tree {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .tree ul {
+            list-style: none;
+            padding-left: 30px;
+            margin-top: 3px;
+        }
+
+        .tree li {
+            margin: 3px 0;
+        }
+
+        .node {
+            display: flex;
+            align-items: center;
+            padding: 3px 5px;
+            cursor: pointer;
+            transition: all 0.1s;
+        }
+
+        .node:hover {
+            background: #003300;
+            box-shadow: 0 0 5px #00ff00;
+        }
+
+        .node.highlighted {
+            background: #333300;
+            color: #ffff00;
+            font-weight: bold;
+        }
+
+        .toggle {
+            display: inline-block;
+            width: 20px;
+            margin-right: 5px;
+            text-align: center;
+            cursor: pointer;
+            color: #00ffff;
+            font-weight: bold;
+            user-select: none;
+        }
+
+        .toggle:hover {
+            color: #00ff00;
+        }
+
+        .node-content {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .node-name {
+            color: #00ff00;
+        }
+
+        .node.highlighted .node-name {
+            color: #ffff00;
+        }
+
+        .user-types {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .user-type-badge {
+            padding: 2px 8px;
+            color: #000000;
+            background: #00ff00;
+            font-size: 11px;
+            border: 1px solid #00ff00;
+        }
+
+        .children {
+            display: none;
+        }
+
+        .children.expanded {
+            display: block;
+        }
+
+        .empty-message, .loading {
+            text-align: center;
+            padding: 40px;
+            color: #00ffff;
+            font-size: 14px;
+        }
+
+        .blink {
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+
+        .status-line {
+            border-top: 2px solid #00ff00;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: #00ffff;
+        }
+
+        select option {
+            background: #000000;
+            color: #00ff00;
+        }
+
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 12px;
+            height: 12px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #000000;
+            border: 1px solid #00ff00;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #00ff00;
+            border: 1px solid #00ff00;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #00cc00;
+        }
+
+        .separator {
+            color: #00ff00;
+            margin: 0 10px;
+        }
+
+        .settings-btn {
+            position: absolute;
+            top: 10px;
+            right: 120px;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #00ff00;
+            color: #000000;
+            border: 2px solid #00ff00;
+            cursor: pointer;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 10px #00ff00;
+            transition: all 0.3s;
+            z-index: 100;
+            font-weight: bold;
+        }
+
+        .settings-btn:hover {
+            background: #00cc00;
+            /* transform: rotate(90deg); */
+            transform: scale(1.5,1.5);
+            box-shadow: 0 0 20px #00ff00;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1001;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.8);
+        }
+
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background-color: #000000;
+            border: 2px solid #00ff00;
+            padding: 30px;
+            max-width: 600px;
+            width: 90%;
+            font-family: 'Courier New', 'Consolas', 'Monaco', monospace;
+        }
+
+        .modal-header {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #00ff00;
+            border-bottom: 1px solid #00ff00;
+            padding-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .modal-close {
+            float: right;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            color: #00ff00;
+        }
+
+        .modal-close:hover {
+            color: #00ffff;
+        }
+
+        .setting-item {
+            margin-bottom: 20px;
+        }
+
+        .setting-item label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #00ff00;
+            text-transform: uppercase;
+        }
+
+        .setting-item input[type="color"] {
+            width: 100%;
+            height: 50px;
+            border: 2px solid #00ff00;
+            background: #000000;
+            cursor: pointer;
+        }
+
+        .setting-item .color-preview {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .setting-item .color-value {
+            font-family: 'Courier New', 'Consolas', 'Monaco', monospace;
+            color: #00ffff;
+            font-size: 14px;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #00ff00;
+        }
+
+        .modal-actions button {
+            padding: 8px 15px;
+            border: 2px solid #00ff00;
+            cursor: pointer;
+            font-size: 12px;
+            font-family: 'Courier New', 'Consolas', 'Monaco', monospace;
+            font-weight: bold;
+            text-transform: uppercase;
+            transition: all 0.2s;
+        }
+
+        .btn-save {
+            background: #00ff00;
+            color: #000000;
+        }
+
+        .btn-save:hover {
+            background: #00cc00;
+            box-shadow: 0 0 10px #00ff00;
+        }
+
+        .btn-reset {
+            background: #000000;
+            color: #ff0000;
+            border-color: #ff0000;
+        }
+
+        .btn-reset:hover {
+            background: #330000;
+            box-shadow: 0 0 10px #ff0000;
+        }
+
+        .btn-cancel {
+            background: #000000;
+            color: #00ff00;
+        }
+
+        .btn-cancel:hover {
+            background: #003300;
+            box-shadow: 0 0 10px #00ff00;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <button class="settings-btn" onclick="openSettings()" title="Settings">SETTINGS</button>
+        <div class="header">
+            ═══ AS/400 Menu Explorer System ═══
+        </div>
+
+        <div class="system-info">
+            <div>SYSTEM: AS400/MENU</div>
+            <div>USER: <span id="currentUser">ADMIN</span></div>
+            <div>DATE: <span id="currentDate"></span></div>
+            <div>TIME: <span id="currentTime"></span></div>
+        </div>
+
+        <div class="controls">
+            <div class="control-row">
+                <label for="search">SEARCH MENU ITEMS:</label>
+                <input type="text" id="search" placeholder="TYPE TO SEARCH...">
+                <button onclick="loadTree()">F5=REFRESH</button>
+            </div>
+
+            <div class="control-row">
+                <label for="userType">FILTER USER TYPE:</label>
+                <select id="userType">
+                    <option value="All">ALL USERS</option>
+                    {% for user_type in user_types %}
+                    <option value="{{ user_type }}">{{ user_type|upper }}</option>
+                    {% endfor %}
+                </select>
+                <button onclick="toggleAllNodes()">F9=EXPAND/COLLAPSE</button>
+            </div>
+        </div>
+
+        <div class="function-keys">
+            <div class="function-key"><span>F3</span>=Exit</div>
+            <div class="function-key"><span>F5</span>=Refresh</div>
+            <div class="function-key"><span>F9</span>=Toggle All</div>
+            <div class="function-key"><span>F12</span>=Cancel</div>
+        </div>
+
+        <div class="stats" id="stats" style="display: none;">
+            <div class="stat-item">
+                <span class="stat-label">TOTAL MENUS:</span>
+                <span class="stat-value" id="totalMenus">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">VISIBLE NODES:</span>
+                <span class="stat-value" id="visibleNodes">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">MAX DEPTH:</span>
+                <span class="stat-value">6</span>
+            </div>
+        </div>
+
+        <div class="tree-container" id="treeContainer">
+            <div class="loading">
+                <span class="blink">▐</span> LOADING MENU TREE...
+            </div>
+        </div>
+
+        <div class="status-line">
+            <div>READY</div>
+            <div>MENU EXPLORER V1.0</div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="modal-close" onclick="closeSettings()">[X]</span>
+                ═══ System Settings ═══
+            </div>
+
+            <div class="setting-item">
+                <label for="bgColor">Background Color:</label>
+                <div class="color-preview">
+                    <input type="color" id="bgColor" value="#000000">
+                    <span class="color-value" id="bgColorValue">#000000</span>
+                </div>
+            </div>
+
+            <div class="setting-item">
+                <label for="textColor">Foreground Color:</label>
+                <div class="color-preview">
+                    <input type="color" id="textColor" value="#00ff00">
+                    <span class="color-value" id="textColorValue">#00ff00</span>
+                </div>
+            </div>
+
+            <div class="setting-item">
+                <label for="accentColor">Accent Color:</label>
+                <div class="color-preview">
+                    <input type="color" id="accentColor" value="#00ffff">
+                    <span class="color-value" id="accentColorValue">#00ffff</span>
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn-reset" onclick="resetSettings()">F4=Reset</button>
+                <button class="btn-cancel" onclick="closeSettings()">F12=Cancel</button>
+                <button class="btn-save" onclick="saveSettings()">F10=Save</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let treeData = [];
+        let allExpanded = false;
+
+        // Default color scheme for AS/400
+        const defaultColors = {
+            bgColor: '#000000',
+            textColor: '#00ff00',
+            accentColor: '#00ffff'
+        };
+
+        // Load settings from localStorage
+        function loadSettings() {
+            const saved = localStorage.getItem('menuExplorerAS400Settings');
+            if (saved) {
+                const settings = JSON.parse(saved);
+                applyColors(settings);
+                updateColorInputs(settings);
+            }
+        }
+
+        // Apply colors to the page
+        function applyColors(colors) {
+            document.body.style.background = colors.bgColor;
+            document.body.style.color = colors.textColor;
+
+            // Update all dynamic colors
+            const style = document.createElement('style');
+            style.id = 'dynamic-colors';
+            const existingStyle = document.getElementById('dynamic-colors');
+            if (existingStyle) {
+                existingStyle.remove();
+            }
+
+            style.textContent = `
+                body {
+                    background: ${colors.bgColor} !important;
+                    color: ${colors.textColor} !important;
+                }
+                .container {
+                    border-color: ${colors.textColor} !important;
+                }
+                .header {
+                    background: ${colors.textColor} !important;
+                    color: ${colors.bgColor} !important;
+                    border-bottom-color: ${colors.textColor} !important;
+                }
+                .system-info, .function-keys, .stats, .status-line {
+                    border-color: ${colors.textColor} !important;
+                    color: ${colors.textColor} !important;
+                }
+                .controls {
+                    border-bottom-color: ${colors.textColor} !important;
+                }
+                label, .node-name, .function-key {
+                    color: ${colors.textColor} !important;
+                }
+                .stat-label, .function-key span, .toggle {
+                    color: ${colors.accentColor} !important;
+                }
+                input[type="text"], select {
+                    background: ${colors.bgColor} !important;
+                    color: ${colors.textColor} !important;
+                    border-color: ${colors.textColor} !important;
+                }
+                input[type="text"]:focus, select:focus {
+                    box-shadow: 0 0 5px ${colors.textColor} !important;
+                }
+                button:not(.btn-reset):not(.btn-cancel):not(.modal-close) {
+                    background: ${colors.textColor} !important;
+                    color: ${colors.bgColor} !important;
+                    border-color: ${colors.textColor} !important;
+                }
+                button:not(.btn-reset):not(.btn-cancel):not(.modal-close):hover {
+                    box-shadow: 0 0 10px ${colors.textColor} !important;
+                }
+                .user-type-badge {
+                    background: ${colors.textColor} !important;
+                    color: ${colors.bgColor} !important;
+                    border-color: ${colors.textColor} !important;
+                }
+                .node:hover {
+                    box-shadow: 0 0 5px ${colors.textColor} !important;
+                }
+                .settings-btn {
+                    background: ${colors.textColor} !important;
+                    color: ${colors.bgColor} !important;
+                    border-color: ${colors.textColor} !important;
+                    box-shadow: 0 0 10px ${colors.textColor} !important;
+                }
+                .settings-btn:hover {
+                    box-shadow: 0 0 20px ${colors.textColor} !important;
+                }
+                ::-webkit-scrollbar-track {
+                    border-color: ${colors.textColor} !important;
+                }
+                ::-webkit-scrollbar-thumb {
+                    background: ${colors.textColor} !important;
+                    border-color: ${colors.textColor} !important;
+                }
+                .modal-content {
+                    background: ${colors.bgColor} !important;
+                    border-color: ${colors.textColor} !important;
+                }
+                .modal-header {
+                    color: ${colors.textColor} !important;
+                    border-color: ${colors.textColor} !important;
+                }
+                .modal-close {
+                    color: ${colors.textColor} !important;
+                }
+                .modal-close:hover {
+                    color: ${colors.accentColor} !important;
+                }
+                .setting-item label {
+                    color: ${colors.textColor} !important;
+                }
+                .setting-item input[type="color"] {
+                    border-color: ${colors.textColor} !important;
+                    background: ${colors.bgColor} !important;
+                }
+                .setting-item .color-value {
+                    color: ${colors.accentColor} !important;
+                }
+                .modal-actions {
+                    border-color: ${colors.textColor} !important;
+                }
+                .btn-cancel {
+                    color: ${colors.textColor} !important;
+                    border-color: ${colors.textColor} !important;
+                }
+                .btn-cancel:hover {
+                    box-shadow: 0 0 10px ${colors.textColor} !important;
+                }
+            `;
+            document.head.appendChild(style);
+        }
+
+        // Update color inputs in modal
+        function updateColorInputs(colors) {
+            document.getElementById('bgColor').value = colors.bgColor;
+            document.getElementById('textColor').value = colors.textColor;
+            document.getElementById('accentColor').value = colors.accentColor;
+
+            document.getElementById('bgColorValue').textContent = colors.bgColor;
+            document.getElementById('textColorValue').textContent = colors.textColor;
+            document.getElementById('accentColorValue').textContent = colors.accentColor;
+        }
+
+        // Open settings modal
+        function openSettings() {
+            document.getElementById('settingsModal').classList.add('show');
+        }
+
+        // Close settings modal
+        function closeSettings() {
+            document.getElementById('settingsModal').classList.remove('show');
+        }
+
+        // Save settings
+        function saveSettings() {
+            const settings = {
+                bgColor: document.getElementById('bgColor').value,
+                textColor: document.getElementById('textColor').value,
+                accentColor: document.getElementById('accentColor').value
+            };
+
+            localStorage.setItem('menuExplorerAS400Settings', JSON.stringify(settings));
+            applyColors(settings);
+            closeSettings();
+        }
+
+        // Reset to default settings
+        function resetSettings() {
+            if (confirm('RESET ALL COLORS TO DEFAULT?')) {
+                localStorage.removeItem('menuExplorerAS400Settings');
+                applyColors(defaultColors);
+                updateColorInputs(defaultColors);
+            }
+        }
+
+        // Update time and date
+        function updateDateTime() {
+            const now = new Date();
+            const date = now.toISOString().split('T')[0];
+            const time = now.toTimeString().split(' ')[0];
+            document.getElementById('currentDate').textContent = date;
+            document.getElementById('currentTime').textContent = time;
+        }
+
+        // Load tree on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSettings();
+            updateDateTime();
+            setInterval(updateDateTime, 1000);
+            loadTree();
+
+            // Update color value display on change
+            ['bgColor', 'textColor', 'accentColor'].forEach(id => {
+                const input = document.getElementById(id);
+                const valueSpan = document.getElementById(id + 'Value');
+                input.addEventListener('input', function() {
+                    valueSpan.textContent = this.value;
+                });
+            });
+
+            // Close modal when clicking outside
+            document.getElementById('settingsModal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeSettings();
+                }
+            });
+
+            // Add enter key support for search
+            document.getElementById('search').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    loadTree();
+                }
+            });
+
+            // Add F-key shortcuts
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'F5') {
+                    e.preventDefault();
+                    loadTree();
+                } else if (e.key === 'F9') {
+                    e.preventDefault();
+                    toggleAllNodes();
+                } else if (e.key === 'F3' || e.key === 'F12') {
+                    e.preventDefault();
+                    // Could implement exit functionality
+                    alert('EXIT FUNCTION NOT IMPLEMENTED');
+                }
+            });
+
+            // Auto-refresh when user type changes and update display
+            document.getElementById('userType').addEventListener('change', function() {
+                document.getElementById('currentUser').textContent = this.value.toUpperCase();
+                loadTree();
+            });
+        });
+
+        async function loadTree() {
+            const search = document.getElementById('search').value;
+            const userType = document.getElementById('userType').value;
+
+            document.getElementById('treeContainer').innerHTML = '<div class="loading"><span class="blink">▐</span> LOADING...</div>';
+
+            try {
+                const response = await fetch(`/api/tree?search=${encodeURIComponent(search)}&user_type=${encodeURIComponent(userType)}`);
+                treeData = await response.json();
+
+                if (treeData.length === 0) {
+                    document.getElementById('treeContainer').innerHTML = '<div class="empty-message">*** NO MENU ITEMS FOUND ***<br>CHECK SEARCH CRITERIA AND TRY AGAIN</div>';
+                    document.getElementById('stats').style.display = 'none';
+                } else {
+                    renderTree(treeData);
+                    updateStats(treeData);
+                }
+            } catch (error) {
+                document.getElementById('treeContainer').innerHTML = '<div class="empty-message">*** ERROR LOADING MENU TREE ***<br>SYSTEM ERROR - CONTACT ADMINISTRATOR</div>';
+                console.error('Error:', error);
+            }
+        }
+
+        function renderTree(data) {
+            const container = document.getElementById('treeContainer');
+            container.innerHTML = '';
+
+            const ul = document.createElement('ul');
+            ul.className = 'tree';
+
+            data.forEach(node => {
+                ul.appendChild(createNodeElement(node));
+            });
+
+            container.appendChild(ul);
+        }
+
+        function createNodeElement(node) {
+            const li = document.createElement('li');
+
+            const nodeDiv = document.createElement('div');
+            nodeDiv.className = 'node' + (node.highlighted ? ' highlighted' : '');
+
+            // Toggle button
+            const hasChildren = node.children && node.children.length > 0;
+            const toggle = document.createElement('span');
+            toggle.className = 'toggle';
+            toggle.textContent = hasChildren ? '+' : '·';
+            if (hasChildren) {
+                toggle.onclick = function(e) {
+                    e.stopPropagation();
+                    toggleNode(li);
+                };
+            }
+            nodeDiv.appendChild(toggle);
+
+            // Node content
+            const content = document.createElement('div');
+            content.className = 'node-content';
+
+            const name = document.createElement('span');
+            name.className = 'node-name';
+            name.textContent = node.name.toUpperCase();
+            content.appendChild(name);
+
+            // User types
+            if (node.user_types && node.user_types.length > 0) {
+                const userTypesDiv = document.createElement('div');
+                userTypesDiv.className = 'user-types';
+
+                node.user_types.forEach(userType => {
+                    const badge = document.createElement('span');
+                    badge.className = 'user-type-badge';
+                    badge.textContent = userType.toUpperCase();
+                    userTypesDiv.appendChild(badge);
+                });
+
+                content.appendChild(userTypesDiv);
+            }
+
+            nodeDiv.appendChild(content);
+            li.appendChild(nodeDiv);
+
+            // Children
+            if (hasChildren) {
+                const childrenUl = document.createElement('ul');
+                childrenUl.className = 'children';
+
+                node.children.forEach(child => {
+                    childrenUl.appendChild(createNodeElement(child));
+                });
+
+                li.appendChild(childrenUl);
+            }
+
+            return li;
+        }
+
+        function toggleNode(li) {
+            const childrenUl = li.querySelector('.children');
+            const toggle = li.querySelector('.toggle');
+
+            if (childrenUl) {
+                childrenUl.classList.toggle('expanded');
+                toggle.textContent = childrenUl.classList.contains('expanded') ? '-' : '+';
+            }
+        }
+
+        function toggleAllNodes() {
+            allExpanded = !allExpanded;
+            const allChildren = document.querySelectorAll('.children');
+            const allToggles = document.querySelectorAll('.toggle');
+
+            allChildren.forEach(child => {
+                if (allExpanded) {
+                    child.classList.add('expanded');
+                } else {
+                    child.classList.remove('expanded');
+                }
+            });
+
+            allToggles.forEach(toggle => {
+                if (toggle.textContent === '+' || toggle.textContent === '-') {
+                    toggle.textContent = allExpanded ? '-' : '+';
+                }
+            });
+        }
+
+        function countNodes(nodes) {
+            let count = 0;
+            nodes.forEach(node => {
+                count++;
+                if (node.children && node.children.length > 0) {
+                    count += countNodes(node.children);
+                }
+            });
+            return count;
+        }
+
+        function updateStats(data) {
+            const totalNodes = countNodes(data);
+            document.getElementById('totalMenus').textContent = totalNodes;
+            document.getElementById('visibleNodes').textContent = totalNodes;
+            document.getElementById('stats').style.display = 'flex';
+        }
+    </script>
+</body>
+</html>

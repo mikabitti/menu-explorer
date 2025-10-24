@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menu Explorer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 30px;
+            position: relative;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        label {
+            font-size: 14px;
+            color: #666;
+            font-weight: 500;
+        }
+
+        input[type="text"], select {
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            min-width: 250px;
+        }
+
+        input[type="text"]:focus, select:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+
+        button {
+            padding: 10px 20px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            align-self: flex-end;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: #45a049;
+        }
+
+        .tree-container {
+            margin-top: 20px;
+        }
+
+        .tree {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .tree ul {
+            list-style: none;
+            padding-left: 25px;
+            margin-top: 5px;
+        }
+
+        .tree li {
+            margin: 5px 0;
+        }
+
+        .node {
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+            background: #f9f9f9;
+            border-radius: 5px;
+            transition: background 0.2s;
+            cursor: pointer;
+            border-left: 3px solid #4CAF50;
+        }
+
+        .node:hover {
+            background: #e8f5e9;
+        }
+
+        .node.highlighted {
+            background: #fff3cd;
+            border-left-color: #ffc107;
+            font-weight: bold;
+        }
+
+        .toggle {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            margin-right: 8px;
+            text-align: center;
+            line-height: 18px;
+            cursor: pointer;
+            font-weight: bold;
+            color: #666;
+            user-select: none;
+        }
+
+        .toggle:hover {
+            color: #333;
+        }
+
+        .node-content {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .node-name {
+            font-weight: 500;
+            color: #333;
+        }
+
+        .user-types {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+
+        .user-type-badge {
+            padding: 3px 8px;
+            background: #e3f2fd;
+            color: #1976d2;
+            border-radius: 3px;
+            font-size: 12px;
+        }
+
+        .children {
+            display: none;
+        }
+
+        .children.expanded {
+            display: block;
+        }
+
+        .empty-message {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+            font-size: 16px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .stats {
+            background: #f0f0f0;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .expand-all {
+            background: #2196F3;
+            margin-left: auto;
+        }
+
+        .expand-all:hover {
+            background: #1976D2;
+        }
+
+        .settings-btn {
+            position: absolute;
+            top: 30px;
+            right: 30px;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            transition: all 0.3s;
+            z-index: 100;
+        }
+
+        .settings-btn:hover {
+            background: #45a049;
+            transform: rotate(90deg);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1001;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            max-width: 500px;
+            width: 90%;
+        }
+
+        .modal-header {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .modal-close {
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            color: #999;
+        }
+
+        .modal-close:hover {
+            color: #333;
+        }
+
+        .setting-item {
+            margin-bottom: 20px;
+        }
+
+        .setting-item label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .setting-item input[type="color"] {
+            width: 100%;
+            height: 50px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .setting-item .color-preview {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .setting-item .color-value {
+            font-family: monospace;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 30px;
+        }
+
+        .modal-actions button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .btn-save {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .btn-save:hover {
+            background: #45a049;
+        }
+
+        .btn-reset {
+            background: #f44336;
+            color: white;
+        }
+
+        .btn-reset:hover {
+            background: #da190b;
+        }
+
+        .btn-cancel {
+            background: #999;
+            color: white;
+        }
+
+        .btn-cancel:hover {
+            background: #777;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <button class="settings-btn" onclick="openSettings()" title="Settings">⚙️</button>
+        <h1>Menu Explorer</h1>
+
+        <div class="controls">
+            <div class="control-group">
+                <label for="search">Search Menu Items</label>
+                <input type="text" id="search" placeholder="Type to search...">
+            </div>
+
+            <div class="control-group">
+                <label for="userType">Filter by User Type</label>
+                <select id="userType">
+                    <option value="All">All Users</option>
+                    {% for user_type in user_types %}
+                    <option value="{{ user_type }}">{{ user_type }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label>&nbsp;</label>
+                <button onclick="loadTree()">Apply Filters</button>
+            </div>
+
+            <div class="control-group">
+                <label>&nbsp;</label>
+                <button class="expand-all" onclick="toggleAllNodes()">Expand/Collapse All</button>
+            </div>
+        </div>
+
+        <div class="stats" id="stats" style="display: none;">
+            <div class="stat-item">
+                <span class="stat-label">Total Menus</span>
+                <span class="stat-value" id="totalMenus">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Visible Nodes</span>
+                <span class="stat-value" id="visibleNodes">0</span>
+            </div>
+        </div>
+
+        <div class="tree-container" id="treeContainer">
+            <div class="loading">Loading menu tree...</div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="modal-close" onclick="closeSettings()">&times;</span>
+                Settings
+            </div>
+
+            <div class="setting-item">
+                <label for="bgColor">Background Color</label>
+                <div class="color-preview">
+                    <input type="color" id="bgColor" value="#f5f5f5">
+                    <span class="color-value" id="bgColorValue">#f5f5f5</span>
+                </div>
+            </div>
+
+            <div class="setting-item">
+                <label for="textColor">Text Color</label>
+                <div class="color-preview">
+                    <input type="color" id="textColor" value="#333333">
+                    <span class="color-value" id="textColorValue">#333333</span>
+                </div>
+            </div>
+
+            <div class="setting-item">
+                <label for="containerBg">Container Background</label>
+                <div class="color-preview">
+                    <input type="color" id="containerBg" value="#ffffff">
+                    <span class="color-value" id="containerBgValue">#ffffff</span>
+                </div>
+            </div>
+
+            <div class="setting-item">
+                <label for="accentColor">Accent Color</label>
+                <div class="color-preview">
+                    <input type="color" id="accentColor" value="#4CAF50">
+                    <span class="color-value" id="accentColorValue">#4CAF50</span>
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn-reset" onclick="resetSettings()">Reset to Default</button>
+                <button class="btn-cancel" onclick="closeSettings()">Cancel</button>
+                <button class="btn-save" onclick="saveSettings()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let treeData = [];
+        let allExpanded = false;
+
+        // Default color scheme
+        const defaultColors = {
+            bgColor: '#f5f5f5',
+            textColor: '#333333',
+            containerBg: '#ffffff',
+            accentColor: '#4CAF50'
+        };
+
+        // Load settings from localStorage
+        function loadSettings() {
+            const saved = localStorage.getItem('menuExplorerSettings');
+            if (saved) {
+                const settings = JSON.parse(saved);
+                applyColors(settings);
+                updateColorInputs(settings);
+            }
+        }
+
+        // Apply colors to the page
+        function applyColors(colors) {
+            document.body.style.background = colors.bgColor;
+            document.body.style.color = colors.textColor;
+
+            const container = document.querySelector('.container');
+            if (container) {
+                container.style.background = colors.containerBg;
+            }
+
+            // Update accent colors
+            const style = document.createElement('style');
+            style.id = 'dynamic-colors';
+            const existingStyle = document.getElementById('dynamic-colors');
+            if (existingStyle) {
+                existingStyle.remove();
+            }
+
+            style.textContent = `
+                button:not(.btn-cancel):not(.btn-reset):not(.modal-close) {
+                    background: ${colors.accentColor} !important;
+                }
+                input[type="text"]:focus, select:focus {
+                    border-color: ${colors.accentColor} !important;
+                }
+                .node {
+                    border-left-color: ${colors.accentColor} !important;
+                }
+                .settings-btn {
+                    background: ${colors.accentColor} !important;
+                }
+                h1 {
+                    color: ${colors.textColor} !important;
+                }
+                label, .stat-label, .stat-value {
+                    color: ${colors.textColor} !important;
+                }
+            `;
+            document.head.appendChild(style);
+        }
+
+        // Update color inputs in modal
+        function updateColorInputs(colors) {
+            document.getElementById('bgColor').value = colors.bgColor;
+            document.getElementById('textColor').value = colors.textColor;
+            document.getElementById('containerBg').value = colors.containerBg;
+            document.getElementById('accentColor').value = colors.accentColor;
+
+            document.getElementById('bgColorValue').textContent = colors.bgColor;
+            document.getElementById('textColorValue').textContent = colors.textColor;
+            document.getElementById('containerBgValue').textContent = colors.containerBg;
+            document.getElementById('accentColorValue').textContent = colors.accentColor;
+        }
+
+        // Open settings modal
+        function openSettings() {
+            document.getElementById('settingsModal').classList.add('show');
+        }
+
+        // Close settings modal
+        function closeSettings() {
+            document.getElementById('settingsModal').classList.remove('show');
+        }
+
+        // Save settings
+        function saveSettings() {
+            const settings = {
+                bgColor: document.getElementById('bgColor').value,
+                textColor: document.getElementById('textColor').value,
+                containerBg: document.getElementById('containerBg').value,
+                accentColor: document.getElementById('accentColor').value
+            };
+
+            localStorage.setItem('menuExplorerSettings', JSON.stringify(settings));
+            applyColors(settings);
+            closeSettings();
+        }
+
+        // Reset to default settings
+        function resetSettings() {
+            if (confirm('Reset all colors to default?')) {
+                localStorage.removeItem('menuExplorerSettings');
+                applyColors(defaultColors);
+                updateColorInputs(defaultColors);
+            }
+        }
+
+        // Update color value display on change
+        document.addEventListener('DOMContentLoaded', function() {
+            ['bgColor', 'textColor', 'containerBg', 'accentColor'].forEach(id => {
+                const input = document.getElementById(id);
+                const valueSpan = document.getElementById(id + 'Value');
+                input.addEventListener('input', function() {
+                    valueSpan.textContent = this.value;
+                });
+            });
+
+            // Close modal when clicking outside
+            document.getElementById('settingsModal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeSettings();
+                }
+            });
+        });
+
+        // Load tree on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSettings();
+            loadTree();
+
+            // Add enter key support for search
+            document.getElementById('search').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    loadTree();
+                }
+            });
+
+            // Auto-refresh when user type changes
+            document.getElementById('userType').addEventListener('change', function() {
+                loadTree();
+            });
+        });
+
+        async function loadTree() {
+            const search = document.getElementById('search').value;
+            const userType = document.getElementById('userType').value;
+
+            document.getElementById('treeContainer').innerHTML = '<div class="loading">Loading...</div>';
+
+            try {
+                const response = await fetch(`/api/tree?search=${encodeURIComponent(search)}&user_type=${encodeURIComponent(userType)}`);
+                treeData = await response.json();
+
+                if (treeData.length === 0) {
+                    document.getElementById('treeContainer').innerHTML = '<div class="empty-message">No menu items found matching your criteria.</div>';
+                    document.getElementById('stats').style.display = 'none';
+                } else {
+                    renderTree(treeData);
+                    updateStats(treeData);
+                }
+            } catch (error) {
+                document.getElementById('treeContainer').innerHTML = '<div class="empty-message">Error loading menu tree. Please try again.</div>';
+                console.error('Error:', error);
+            }
+        }
+
+        function renderTree(data) {
+            const container = document.getElementById('treeContainer');
+            container.innerHTML = '';
+
+            const ul = document.createElement('ul');
+            ul.className = 'tree';
+
+            data.forEach(node => {
+                ul.appendChild(createNodeElement(node));
+            });
+
+            container.appendChild(ul);
+        }
+
+        function createNodeElement(node) {
+            const li = document.createElement('li');
+
+            const nodeDiv = document.createElement('div');
+            nodeDiv.className = 'node' + (node.highlighted ? ' highlighted' : '');
+
+            // Toggle button
+            const hasChildren = node.children && node.children.length > 0;
+            const toggle = document.createElement('span');
+            toggle.className = 'toggle';
+            toggle.textContent = hasChildren ? '▶' : '○';
+            if (hasChildren) {
+                toggle.onclick = function(e) {
+                    e.stopPropagation();
+                    toggleNode(li);
+                };
+            }
+            nodeDiv.appendChild(toggle);
+
+            // Node content
+            const content = document.createElement('div');
+            content.className = 'node-content';
+
+            const name = document.createElement('span');
+            name.className = 'node-name';
+            name.textContent = node.name;
+            content.appendChild(name);
+
+            // User types
+            if (node.user_types && node.user_types.length > 0) {
+                const userTypesDiv = document.createElement('div');
+                userTypesDiv.className = 'user-types';
+
+                node.user_types.forEach(userType => {
+                    const badge = document.createElement('span');
+                    badge.className = 'user-type-badge';
+                    badge.textContent = userType;
+                    userTypesDiv.appendChild(badge);
+                });
+
+                content.appendChild(userTypesDiv);
+            }
+
+            nodeDiv.appendChild(content);
+            li.appendChild(nodeDiv);
+
+            // Children
+            if (hasChildren) {
+                const childrenUl = document.createElement('ul');
+                childrenUl.className = 'children';
+
+                node.children.forEach(child => {
+                    childrenUl.appendChild(createNodeElement(child));
+                });
+
+                li.appendChild(childrenUl);
+            }
+
+            return li;
+        }
+
+        function toggleNode(li) {
+            const childrenUl = li.querySelector('.children');
+            const toggle = li.querySelector('.toggle');
+
+            if (childrenUl) {
+                childrenUl.classList.toggle('expanded');
+                toggle.textContent = childrenUl.classList.contains('expanded') ? '▼' : '▶';
+            }
+        }
+
+        function toggleAllNodes() {
+            allExpanded = !allExpanded;
+            const allChildren = document.querySelectorAll('.children');
+            const allToggles = document.querySelectorAll('.toggle');
+
+            allChildren.forEach(child => {
+                if (allExpanded) {
+                    child.classList.add('expanded');
+                } else {
+                    child.classList.remove('expanded');
+                }
+            });
+
+            allToggles.forEach(toggle => {
+                if (toggle.textContent === '▶' || toggle.textContent === '▼') {
+                    toggle.textContent = allExpanded ? '▼' : '▶';
+                }
+            });
+        }
+
+        function countNodes(nodes) {
+            let count = 0;
+            nodes.forEach(node => {
+                count++;
+                if (node.children && node.children.length > 0) {
+                    count += countNodes(node.children);
+                }
+            });
+            return count;
+        }
+
+        function updateStats(data) {
+            const totalNodes = countNodes(data);
+            document.getElementById('totalMenus').textContent = totalNodes;
+            document.getElementById('visibleNodes').textContent = totalNodes;
+            document.getElementById('stats').style.display = 'flex';
+        }
+    </script>
+</body>
+</html>
