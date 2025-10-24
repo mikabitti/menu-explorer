@@ -12,12 +12,14 @@
         }
 
         body {
-            font-family: 'Courier New', 'Consolas', 'Monaco', monospace;
+            font-family: 'Consolas', 'Courier New', 'Monaco', monospace;
             background: #000000;
             color: #00dd00;
             padding: 20px;
             font-size: 14px;
             line-height: 1.4;
+            overflow: hidden;
+            height: calc(100vh - 40px);
         }
 
         .container {
@@ -26,6 +28,9 @@
             border: 2px solid #00dd00;
             padding: 0;
             position: relative;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
         }
 
         .header {
@@ -40,6 +45,7 @@
             position: relative;
             display: flex;
             align-items: center;
+            flex-shrink: 0;
         }
 
         .system-info {
@@ -47,6 +53,7 @@
             border-bottom: 1px solid #00dd00;
             display: flex;
             font-size: 12px;
+            flex-shrink: 0;
         }
 
         .system-info > div:first-child {
@@ -73,6 +80,7 @@
         .controls {
             padding: 20px;
             border-bottom: 2px solid #00dd00;
+            flex-shrink: 0;
         }
 
         .control-row {
@@ -97,7 +105,7 @@
             color: #00dd00;
             border: 1px solid #00dd00;
             padding: 5px 10px;
-            font-family: 'Courier New', 'Consolas', 'Monaco', monospace;
+            font-family: 'Consolas', 'Courier New', 'Monaco', monospace;
             font-size: 14px;
             min-width: 300px;
         }
@@ -114,7 +122,7 @@
             color: #000000;
             border: 2px solid #00dd00;
             cursor: pointer;
-            font-family: 'Courier New', 'Consolas', 'Monaco', monospace;
+            font-family: 'Consolas', 'Courier New', 'Monaco', monospace;
             font-size: 14px;
             font-weight: bold;
             margin-left: 10px;
@@ -139,6 +147,7 @@
             gap: 20px;
             flex-wrap: wrap;
             font-size: 12px;
+            flex-shrink: 0;
         }
 
         .function-key {
@@ -156,6 +165,7 @@
             display: flex;
             gap: 40px;
             font-size: 12px;
+            flex-shrink: 0;
         }
 
         .stat-item {
@@ -174,7 +184,9 @@
 
         .tree-container {
             padding: 20px;
-            min-height: 400px;
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
         }
 
         .tree {
@@ -287,6 +299,7 @@
             min-height: 40px;
             word-wrap: break-word;
             overflow-wrap: break-word;
+            flex-shrink: 0;
         }
 
         .path-label {
@@ -308,6 +321,7 @@
             justify-content: space-between;
             font-size: 12px;
             color: #00ffff;
+            flex-shrink: 0;
         }
 
         select option {
@@ -352,7 +366,7 @@
             border: 2px solid #000000 !important;
             cursor: pointer;
             font-size: 11px;
-            font-family: 'Courier New', 'Consolas', 'Monaco', monospace;
+            font-family: 'Consolas', 'Courier New', 'Monaco', monospace;
             font-weight: bold;
             text-transform: uppercase;
             letter-spacing: 1px;
@@ -388,7 +402,7 @@
             padding: 30px;
             max-width: 600px;
             width: 90%;
-            font-family: 'Courier New', 'Consolas', 'Monaco', monospace;
+            font-family: 'Consolas', 'Courier New', 'Monaco', monospace;
         }
 
         .modal-header {
@@ -441,7 +455,7 @@
         }
 
         .setting-item .color-value {
-            font-family: 'Courier New', 'Consolas', 'Monaco', monospace;
+            font-family: 'Consolas', 'Courier New', 'Monaco', monospace;
             color: #00ffff;
             font-size: 14px;
         }
@@ -460,7 +474,7 @@
             border: 2px solid #00dd00;
             cursor: pointer;
             font-size: 12px;
-            font-family: 'Courier New', 'Consolas', 'Monaco', monospace;
+            font-family: 'Consolas', 'Courier New', 'Monaco', monospace;
             font-weight: bold;
             text-transform: uppercase;
             transition: all 0.2s;
