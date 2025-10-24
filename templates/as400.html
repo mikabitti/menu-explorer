@@ -554,16 +554,16 @@
 
         <div class="stats" id="stats" style="display: none;">
             <div class="stat-item">
-                <span class="stat-label">TOTAL MENUS:</span>
+                <span class="stat-label">MENUS:</span>
                 <span class="stat-value" id="totalMenus">0</span>
             </div>
             <div class="stat-item">
-                <span class="stat-label">VISIBLE NODES:</span>
-                <span class="stat-value" id="visibleNodes">0</span>
+                <span class="stat-label">ITEMS:</span>
+                <span class="stat-value" id="totalItems">0</span>
             </div>
             <div class="stat-item">
                 <span class="stat-label">MAX DEPTH:</span>
-                <span class="stat-value">6</span>
+                <span class="stat-value" id="maxDepth">0</span>
             </div>
         </div>
 
@@ -1015,21 +1015,48 @@
             });
         }
 
-        function countNodes(nodes) {
-            let count = 0;
+        function countMenusAndItems(nodes) {
+            let menus = 0;
+            let items = 0;
+
             nodes.forEach(node => {
-                count++;
                 if (node.children && node.children.length > 0) {
-                    count += countNodes(node.children);
+                    menus++;
+                    const childCounts = countMenusAndItems(node.children);
+                    menus += childCounts.menus;
+                    items += childCounts.items;
+                } else {
+                    items++;
                 }
             });
-            return count;
+
+            return { menus, items };
+        }
+
+        function getMaxDepth(nodes, currentDepth = 1) {
+            if (!nodes || nodes.length === 0) {
+                return currentDepth - 1;
+            }
+
+            let maxDepth = currentDepth;
+
+            nodes.forEach(node => {
+                if (node.children && node.children.length > 0) {
+                    const childDepth = getMaxDepth(node.children, currentDepth + 1);
+                    maxDepth = Math.max(maxDepth, childDepth);
+                }
+            });
+
+            return maxDepth;
         }
 
         function updateStats(data) {
-            const totalNodes = countNodes(data);
-            document.getElementById('totalMenus').textContent = totalNodes;
-            document.getElementById('visibleNodes').textContent = totalNodes;
+            const counts = countMenusAndItems(data);
+            const maxDepth = getMaxDepth(data);
+
+            document.getElementById('totalMenus').textContent = counts.menus;
+            document.getElementById('totalItems').textContent = counts.items;
+            document.getElementById('maxDepth').textContent = maxDepth;
             document.getElementById('stats').style.display = 'flex';
         }
     </script>
