@@ -14,7 +14,7 @@
         body {
             font-family: 'Courier New', 'Consolas', 'Monaco', monospace;
             background: #000000;
-            color: #00ff00;
+            color: #00dd00;
             padding: 20px;
             font-size: 14px;
             line-height: 1.4;
@@ -23,33 +23,56 @@
         .container {
             max-width: 1400px;
             margin: 0 auto;
-            border: 2px solid #00ff00;
+            border: 2px solid #00dd00;
             padding: 0;
             position: relative;
         }
 
         .header {
-            background: #00ff00;
+            background: #00dd00;
             color: #000000;
             padding: 10px 20px;
             font-weight: bold;
             font-size: 16px;
-            border-bottom: 2px solid #00ff00;
+            border-bottom: 2px solid #00dd00;
             text-transform: uppercase;
             letter-spacing: 2px;
+            position: relative;
+            display: flex;
+            align-items: center;
         }
 
         .system-info {
             padding: 10px 20px;
-            border-bottom: 1px solid #00ff00;
+            border-bottom: 1px solid #00dd00;
             display: flex;
-            justify-content: space-between;
             font-size: 12px;
+        }
+
+        .system-info > div:first-child {
+            width: 200px;
+            flex-shrink: 0;
+        }
+
+        .system-info > div:nth-child(2) {
+            width: 200px;
+            flex-shrink: 0;
+        }
+
+        .system-info > div:nth-child(3) {
+            width: 150px;
+            flex-shrink: 0;
+            margin-left: auto;
+        }
+
+        .system-info > div:nth-child(4) {
+            width: 120px;
+            flex-shrink: 0;
         }
 
         .controls {
             padding: 20px;
-            border-bottom: 2px solid #00ff00;
+            border-bottom: 2px solid #00dd00;
         }
 
         .control-row {
@@ -65,14 +88,14 @@
         label {
             display: inline-block;
             width: 200px;
-            color: #00ff00;
+            color: #00dd00;
             font-weight: bold;
         }
 
         input[type="text"], select {
             background: #000000;
-            color: #00ff00;
-            border: 1px solid #00ff00;
+            color: #00dd00;
+            border: 1px solid #00dd00;
             padding: 5px 10px;
             font-family: 'Courier New', 'Consolas', 'Monaco', monospace;
             font-size: 14px;
@@ -82,14 +105,14 @@
         input[type="text"]:focus, select:focus {
             outline: none;
             background: #003300;
-            box-shadow: 0 0 5px #00ff00;
+            box-shadow: 0 0 5px #00dd00;
         }
 
         button {
             padding: 5px 15px;
-            background: #00ff00;
+            background: #00dd00;
             color: #000000;
-            border: 2px solid #00ff00;
+            border: 2px solid #00dd00;
             cursor: pointer;
             font-family: 'Courier New', 'Consolas', 'Monaco', monospace;
             font-size: 14px;
@@ -101,7 +124,7 @@
 
         button:hover {
             background: #00cc00;
-            box-shadow: 0 0 10px #00ff00;
+            box-shadow: 0 0 10px #00dd00;
         }
 
         button:active {
@@ -110,8 +133,8 @@
 
         .function-keys {
             padding: 10px 20px;
-            border-top: 1px solid #00ff00;
-            border-bottom: 2px solid #00ff00;
+            border-top: 1px solid #00dd00;
+            border-bottom: 2px solid #00dd00;
             display: flex;
             gap: 20px;
             flex-wrap: wrap;
@@ -119,7 +142,7 @@
         }
 
         .function-key {
-            color: #00ff00;
+            color: #00dd00;
         }
 
         .function-key span {
@@ -129,7 +152,7 @@
 
         .stats {
             padding: 10px 20px;
-            border-bottom: 1px solid #00ff00;
+            border-bottom: 1px solid #00dd00;
             display: flex;
             gap: 40px;
             font-size: 12px;
@@ -179,7 +202,7 @@
 
         .node:hover {
             background: #003300;
-            box-shadow: 0 0 5px #00ff00;
+            box-shadow: 0 0 5px #00dd00;
         }
 
         .node.highlighted {
@@ -200,7 +223,7 @@
         }
 
         .toggle:hover {
-            color: #00ff00;
+            color: #00dd00;
         }
 
         .node-content {
@@ -211,7 +234,7 @@
         }
 
         .node-name {
-            color: #00ff00;
+            color: #00dd00;
         }
 
         .node.highlighted .node-name {
@@ -227,9 +250,9 @@
         .user-type-badge {
             padding: 2px 8px;
             color: #000000;
-            background: #00ff00;
+            background: #00dd00;
             font-size: 11px;
-            border: 1px solid #00ff00;
+            border: 1px solid #00dd00;
         }
 
         .children {
@@ -257,7 +280,7 @@
         }
 
         .status-line {
-            border-top: 2px solid #00ff00;
+            border-top: 2px solid #00dd00;
             padding: 10px 20px;
             display: flex;
             justify-content: space-between;
@@ -267,7 +290,7 @@
 
         select option {
             background: #000000;
-            color: #00ff00;
+            color: #00dd00;
         }
 
         /* Scrollbar styling */
@@ -278,12 +301,12 @@
 
         ::-webkit-scrollbar-track {
             background: #000000;
-            border: 1px solid #00ff00;
+            border: 1px solid #00dd00;
         }
 
         ::-webkit-scrollbar-thumb {
-            background: #00ff00;
-            border: 1px solid #00ff00;
+            background: #00dd00;
+            border: 1px solid #00dd00;
         }
 
         ::-webkit-scrollbar-thumb:hover {
@@ -291,36 +314,33 @@
         }
 
         .separator {
-            color: #00ff00;
+            color: #00dd00;
             margin: 0 10px;
         }
 
         .settings-btn {
             position: absolute;
-            top: 10px;
-            right: 120px;
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            background: #00ff00;
+            top: 50%;
+            transform: translateY(-50%);
+            right: 10px;
+            padding: 6px 12px;
+            border-radius: 3px;
+            background: #00dd00;
             color: #000000;
-            border: 2px solid #00ff00;
+            border: 2px solid #000000 !important;
             cursor: pointer;
-            font-size: 18px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 0 10px #00ff00;
+            font-size: 11px;
+            font-family: 'Courier New', 'Consolas', 'Monaco', monospace;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
             transition: all 0.3s;
             z-index: 100;
-            font-weight: bold;
         }
 
         .settings-btn:hover {
             background: #00cc00;
-            /* transform: rotate(90deg); */
-            transform: scale(1.5,1.5);
-            box-shadow: 0 0 20px #00ff00;
+            transform: translateY(-50%) scale(1.05);
         }
 
         .modal {
@@ -342,7 +362,7 @@
 
         .modal-content {
             background-color: #000000;
-            border: 2px solid #00ff00;
+            border: 2px solid #00dd00;
             padding: 30px;
             max-width: 600px;
             width: 90%;
@@ -353,8 +373,8 @@
             font-size: 18px;
             font-weight: bold;
             margin-bottom: 20px;
-            color: #00ff00;
-            border-bottom: 1px solid #00ff00;
+            color: #00dd00;
+            border-bottom: 1px solid #00dd00;
             padding-bottom: 10px;
             text-transform: uppercase;
             letter-spacing: 2px;
@@ -365,7 +385,7 @@
             font-size: 24px;
             font-weight: bold;
             cursor: pointer;
-            color: #00ff00;
+            color: #00dd00;
         }
 
         .modal-close:hover {
@@ -380,14 +400,14 @@
             display: block;
             margin-bottom: 8px;
             font-weight: bold;
-            color: #00ff00;
+            color: #00dd00;
             text-transform: uppercase;
         }
 
         .setting-item input[type="color"] {
             width: 100%;
             height: 50px;
-            border: 2px solid #00ff00;
+            border: 2px solid #00dd00;
             background: #000000;
             cursor: pointer;
         }
@@ -410,12 +430,12 @@
             justify-content: flex-end;
             margin-top: 30px;
             padding-top: 20px;
-            border-top: 1px solid #00ff00;
+            border-top: 1px solid #00dd00;
         }
 
         .modal-actions button {
             padding: 8px 15px;
-            border: 2px solid #00ff00;
+            border: 2px solid #00dd00;
             cursor: pointer;
             font-size: 12px;
             font-family: 'Courier New', 'Consolas', 'Monaco', monospace;
@@ -425,13 +445,13 @@
         }
 
         .btn-save {
-            background: #00ff00;
+            background: #00dd00;
             color: #000000;
         }
 
         .btn-save:hover {
             background: #00cc00;
-            box-shadow: 0 0 10px #00ff00;
+            box-shadow: 0 0 10px #00dd00;
         }
 
         .btn-reset {
@@ -447,20 +467,20 @@
 
         .btn-cancel {
             background: #000000;
-            color: #00ff00;
+            color: #00dd00;
         }
 
         .btn-cancel:hover {
             background: #003300;
-            box-shadow: 0 0 10px #00ff00;
+            box-shadow: 0 0 10px #00dd00;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <button class="settings-btn" onclick="openSettings()" title="Settings">SETTINGS</button>
         <div class="header">
             ═══ AS/400 Menu Explorer System ═══
+            <button class="settings-btn" onclick="openSettings()" title="Settings">SETTINGS</button>
         </div>
 
         <div class="system-info">
@@ -542,8 +562,8 @@
             <div class="setting-item">
                 <label for="textColor">Foreground Color:</label>
                 <div class="color-preview">
-                    <input type="color" id="textColor" value="#00ff00">
-                    <span class="color-value" id="textColorValue">#00ff00</span>
+                    <input type="color" id="textColor" value="#00dd00">
+                    <span class="color-value" id="textColorValue">#00dd00</span>
                 </div>
             </div>
 
@@ -570,7 +590,7 @@
         // Default color scheme for AS/400
         const defaultColors = {
             bgColor: '#000000',
-            textColor: '#00ff00',
+            textColor: '#00dd00',
             accentColor: '#00ffff'
         };
 
@@ -631,13 +651,18 @@
                 input[type="text"]:focus, select:focus {
                     box-shadow: 0 0 5px ${colors.textColor} !important;
                 }
-                button:not(.btn-reset):not(.btn-cancel):not(.modal-close) {
+                button:not(.btn-reset):not(.btn-cancel):not(.modal-close):not(.settings-btn) {
                     background: ${colors.textColor} !important;
                     color: ${colors.bgColor} !important;
                     border-color: ${colors.textColor} !important;
                 }
-                button:not(.btn-reset):not(.btn-cancel):not(.modal-close):hover {
+                button:not(.btn-reset):not(.btn-cancel):not(.modal-close):not(.settings-btn):hover {
                     box-shadow: 0 0 10px ${colors.textColor} !important;
+                }
+                .settings-btn {
+                    background: ${colors.textColor} !important;
+                    color: ${colors.bgColor} !important;
+                    border: 2px solid ${colors.bgColor} !important;
                 }
                 .user-type-badge {
                     background: ${colors.textColor} !important;
@@ -647,14 +672,8 @@
                 .node:hover {
                     box-shadow: 0 0 5px ${colors.textColor} !important;
                 }
-                .settings-btn {
-                    background: ${colors.textColor} !important;
-                    color: ${colors.bgColor} !important;
-                    border-color: ${colors.textColor} !important;
-                    box-shadow: 0 0 10px ${colors.textColor} !important;
-                }
                 .settings-btn:hover {
-                    box-shadow: 0 0 20px ${colors.textColor} !important;
+                    transform: translateY(-50%) scale(1.05) !important;
                 }
                 ::-webkit-scrollbar-track {
                     border-color: ${colors.textColor} !important;
