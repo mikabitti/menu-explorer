@@ -267,6 +267,22 @@
             border: 1px solid #00dd00;
         }
 
+        .header-text {
+            color: #00ffff;
+            font-weight: bold;
+            padding: 5px 0px 5px 25px;
+            margin: 5px 0;
+            font-size: 13px;
+            text-transform: uppercase;
+        }
+
+        .node-description {
+            color: #00dd00;
+            font-size: 11px;
+            margin-left: 5px;
+            opacity: 0.8;
+        }
+
         .children {
             display: none;
         }
@@ -915,6 +931,16 @@
             const li = document.createElement('li');
             const currentPath = [...path, node.name];
 
+            // Render headers first if they exist
+            if (node.headers && node.headers.length > 0) {
+                node.headers.forEach(header => {
+                    const headerDiv = document.createElement('div');
+                    headerDiv.className = 'header-text';
+                    headerDiv.textContent = header.text.toUpperCase();
+                    li.appendChild(headerDiv);
+                });
+            }
+
             const nodeDiv = document.createElement('div');
             nodeDiv.className = 'node' + (node.highlighted ? ' highlighted' : '');
 
@@ -941,10 +967,22 @@
             const content = document.createElement('div');
             content.className = 'node-content';
 
+            const nameDescWrapper = document.createElement('div');
+
             const name = document.createElement('span');
             name.className = 'node-name';
             name.textContent = node.name.toUpperCase();
-            content.appendChild(name);
+            nameDescWrapper.appendChild(name);
+
+            // Add description if available
+            if (node.description) {
+                const desc = document.createElement('span');
+                desc.className = 'node-description';
+                desc.textContent = ' - ' + node.description;
+                nameDescWrapper.appendChild(desc);
+            }
+
+            content.appendChild(nameDescWrapper);
 
             // User types
             if (node.user_types && node.user_types.length > 0) {

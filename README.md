@@ -22,18 +22,43 @@ uv sync
 
 ### 1. Prepare Your Data
 
-Replace the example DataFrame in [app.py](app.py) with your actual menu data. The data should have three columns:
-- `from_menu`: Parent menu name
-- `to_menu`: Child menu name
-- `user_type`: User type that can access this menu path
+The application supports two data formats:
 
-Example:
+#### Simple Format (for testing):
 ```python
 df = pd.DataFrame({
-    'from_menu': ['Main', 'Main', 'Main', 'Main', 'SubMenu1', 'SubMenu2'],
-    'to_menu': ['SubMenu1', 'SubMenu1', 'SubMenu2', 'Settings', 'SubMenu3', 'Settings'],
-    'user_type': ['Admin', 'User', 'Admin', 'User', 'User2', 'Admin']
+    'from_menu': ['Main', 'Main', 'Main'],
+    'to_menu': ['SubMenu1', 'SubMenu2', 'Settings'],
+    'user_type': ['Admin', 'User', 'Admin']
 })
+```
+
+#### Real AS/400 Format (with headers and descriptions):
+Your CSV file should have these columns:
+- `FROM_MENU`: Parent menu name
+- `TO_MENU`: Child menu/program name (empty for headers)
+- `DESCRIPTION`: Description of the menu item
+- `MENU_ORDER`: Order number for items in the menu
+- `HEADER_ORDER`: Order number for headers (when TO_MENU is empty)
+- `USER_TYPE`: User type that can access this item (optional)
+
+Example CSV:
+```
+FROM_MENU;TO_MENU;DESCRIPTION;MENU_ORDER;HEADER_ORDER;USER_TYPE
+MENU1;;Header example;1;1;Admin
+MENU1;PROG1;Example desc1;1;9;Admin
+MENU1;PROG2;Example desc2;2;9;User
+MENU1;;Subheader example;4;1;Admin
+MENU1;PROG3;Example desc3;4;9;User
+```
+
+**Loading from CSV**:
+```python
+# See load_csv_example.py for a complete example
+import pandas as pd
+df = pd.read_csv('your_menu_data.csv', sep=';')
+df.columns = df.columns.str.strip().str.lower()
+df['to_menu'] = df['to_menu'].replace('', None)
 ```
 
 ### 2. Run the Application

@@ -335,23 +335,50 @@ def build_tree(dataframe, user_type_filter=None):
     if user_type_filter and user_type_filter != 'All':
         dataframe = dataframe[dataframe['user_type'] == user_type_filter]
 
+    # Check if we have the new format with description and ordering
+    has_description = 'description' in dataframe.columns
+    has_ordering = 'menu_order' in dataframe.columns and 'header_order' in dataframe.columns
+
     # Build adjacency list
-    tree_dict = defaultdict(lambda: {'children': set(), 'user_types': set()})
+    tree_dict = defaultdict(lambda: {
+        'children': [],
+        'user_types': set(),
+        'headers': []
+    })
     all_nodes = set()
     child_nodes = set()
 
     for _, row in dataframe.iterrows():
         from_menu = row['from_menu']
-        to_menu = row['to_menu']
-        user_type = row['user_type']
+        to_menu = row['to_menu'] if pd.notna(row['to_menu']) and row['to_menu'] else None
+        user_type = row.get('user_type', '')
 
         all_nodes.add(from_menu)
-        all_nodes.add(to_menu)
-        child_nodes.add(to_menu)
 
-        tree_dict[from_menu]['children'].add(to_menu)
-        tree_dict[from_menu]['user_types'].add(user_type)
-        tree_dict[to_menu]['user_types'].add(user_type)
+        # Handle headers (when to_menu is empty)
+        if not to_menu:
+            if has_description:
+                header_info = {
+                    'text': row.get('description', ''),
+                    'menu_order': row.get('menu_order', 0) if has_ordering else 0,
+                    'header_order': row.get('header_order', 0) if has_ordering else 0
+                }
+                tree_dict[from_menu]['headers'].append(header_info)
+        else:
+            # Handle regular menu items
+            all_nodes.add(to_menu)
+            child_nodes.add(to_menu)
+
+            child_info = {
+                'name': to_menu,
+                'description': row.get('description', '') if has_description else '',
+                'menu_order': row.get('menu_order', 0) if has_ordering else 0,
+                'user_type': user_type
+            }
+
+            tree_dict[from_menu]['children'].append(child_info)
+            tree_dict[from_menu]['user_types'].add(user_type)
+            tree_dict[to_menu]['user_types'].add(user_type)
 
     # Find root nodes (nodes that are not children of any other node)
     root_nodes = all_nodes - child_nodes
@@ -369,12 +396,22 @@ def build_tree(dataframe, user_type_filter=None):
         node = {
             'name': node_name,
             'user_types': sorted(list(tree_dict[node_name]['user_types'])),
+            'headers': sorted(tree_dict[node_name]['headers'],
+                            key=lambda x: (x.get('menu_order', 0), x.get('header_order', 0))),
             'children': []
         }
 
-        for child in sorted(tree_dict[node_name]['children']):
-            child_node = build_node(child, visited.copy())
+        # Sort children by menu_order
+        sorted_children = sorted(tree_dict[node_name]['children'],
+                                key=lambda x: x.get('menu_order', 0))
+
+        for child_info in sorted_children:
+            child_name = child_info['name']
+            child_node = build_node(child_name, visited.copy())
             if child_node:
+                # Add description to the child node
+                child_node['description'] = child_info.get('description', '')
+                child_node['menu_order'] = child_info.get('menu_order', 0)
                 node['children'].append(child_node)
 
         return node
@@ -392,14 +429,16 @@ def build_tree(dataframe, user_type_filter=None):
 @app.route('/')
 def index():
     """Render the main page."""
-    user_types = sorted(df['user_type'].unique().tolist())
+    data = app.config.get('df', df)
+    user_types = sorted(data['user_type'].unique().tolist()) if 'user_type' in data.columns else ['Admin']
     return render_template('index.html', user_types=user_types)
 
 
 @app.route('/as400')
 def as400_theme():
     """Render the AS/400 themed page."""
-    user_types = sorted(df['user_type'].unique().tolist())
+    data = app.config.get('df', df)
+    user_types = sorted(data['user_type'].unique().tolist()) if 'user_type' in data.columns else ['Admin']
     return render_template('as400.html', user_types=user_types)
 
 
@@ -409,7 +448,10 @@ def get_tree():
     user_type = request.args.get('user_type', 'All')
     search = request.args.get('search', '').strip().lower()
 
-    tree = build_tree(df, user_type if user_type != 'All' else None)
+    # Use custom dataframe if provided in app config, otherwise use default
+    data = app.config.get('df', df)
+
+    tree = build_tree(data, user_type if user_type != 'All' else None)
 
     # Filter tree by search if provided
     if search:
