@@ -931,16 +931,6 @@
             const li = document.createElement('li');
             const currentPath = [...path, node.name];
 
-            // Render headers first if they exist
-            if (node.headers && node.headers.length > 0) {
-                node.headers.forEach(header => {
-                    const headerDiv = document.createElement('div');
-                    headerDiv.className = 'header-text';
-                    headerDiv.textContent = header.text.toUpperCase();
-                    li.appendChild(headerDiv);
-                });
-            }
-
             const nodeDiv = document.createElement('div');
             nodeDiv.className = 'node' + (node.highlighted ? ' highlighted' : '');
 
@@ -1002,13 +992,54 @@
             nodeDiv.appendChild(content);
             li.appendChild(nodeDiv);
 
-            // Children
+            // Children (with headers inside, interleaved by menu_order)
             if (hasChildren) {
                 const childrenUl = document.createElement('ul');
                 childrenUl.className = 'children';
 
+                // Create a combined list of headers and children with their orders
+                const items = [];
+
+                // Add headers
+                if (node.headers && node.headers.length > 0) {
+                    node.headers.forEach(header => {
+                        items.push({
+                            type: 'header',
+                            order: header.menu_order,
+                            suborder: header.header_order,
+                            data: header
+                        });
+                    });
+                }
+
+                // Add children
                 node.children.forEach(child => {
-                    childrenUl.appendChild(createNodeElement(child, currentPath));
+                    items.push({
+                        type: 'child',
+                        order: child.menu_order || 999,
+                        suborder: 999, // Children always come after headers at same menu_order
+                        data: child
+                    });
+                });
+
+                // Sort by order, then suborder
+                items.sort((a, b) => {
+                    if (a.order !== b.order) return a.order - b.order;
+                    return a.suborder - b.suborder;
+                });
+
+                // Render items in order
+                items.forEach(item => {
+                    if (item.type === 'header') {
+                        const headerLi = document.createElement('li');
+                        const headerDiv = document.createElement('div');
+                        headerDiv.className = 'header-text';
+                        headerDiv.textContent = item.data.text.toUpperCase();
+                        headerLi.appendChild(headerDiv);
+                        childrenUl.appendChild(headerLi);
+                    } else {
+                        childrenUl.appendChild(createNodeElement(item.data, currentPath));
+                    }
                 });
 
                 li.appendChild(childrenUl);
