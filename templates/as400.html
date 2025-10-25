@@ -259,6 +259,9 @@
 
         .node-name {
             color: #00dd00;
+            font-size: 11px;
+            margin-left: 5px;
+            opacity: 0.8;
         }
 
         .node.highlighted .node-name {
@@ -298,9 +301,6 @@
 
         .node-description {
             color: #00dd00;
-            font-size: 11px;
-            margin-left: 5px;
-            opacity: 0.8;
         }
 
         .children {
@@ -1048,18 +1048,19 @@
 
             const nameDescWrapper = document.createElement('div');
 
-            const name = document.createElement('span');
-            name.className = 'node-name';
-            name.textContent = node.name.toUpperCase();
-            nameDescWrapper.appendChild(name);
-
-            // Add description if available
+            // Add description first if available
             if (node.description) {
                 const desc = document.createElement('span');
                 desc.className = 'node-description';
-                desc.textContent = ' - ' + node.description;
+                desc.textContent = node.description;
                 nameDescWrapper.appendChild(desc);
             }
+
+            // Add name second (in smaller font)
+            const name = document.createElement('span');
+            name.className = 'node-name';
+            name.textContent = node.description ? ' - ' + node.name.toUpperCase() : node.name.toUpperCase();
+            nameDescWrapper.appendChild(name);
 
             content.appendChild(nameDescWrapper);
 
