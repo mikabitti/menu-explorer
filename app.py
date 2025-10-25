@@ -474,8 +474,20 @@ def filter_tree_by_search(tree, search_term):
 
 def filter_node(node, search_term):
     """Recursively filter a node and its children."""
-    # Check if current node matches
+    # Check if current node matches (search in name and description)
     node_matches = search_term in node['name'].lower()
+
+    # Also search in description if available
+    if not node_matches and 'description' in node and node['description']:
+        node_matches = search_term in node['description'].lower()
+
+    # Search in headers if available
+    header_matches = False
+    if not node_matches and 'headers' in node and node['headers']:
+        for header in node['headers']:
+            if search_term in header.get('text', '').lower():
+                header_matches = True
+                break
 
     # Recursively filter children
     filtered_children = []
@@ -485,12 +497,15 @@ def filter_node(node, search_term):
             filtered_children.append(filtered_child)
 
     # Keep node if it matches or has matching children
-    if node_matches or filtered_children:
+    if node_matches or header_matches or filtered_children:
         return {
             'name': node['name'],
             'user_types': node['user_types'],
+            'description': node.get('description', ''),
+            'menu_order': node.get('menu_order', 0),
+            'headers': node.get('headers', []),
             'children': filtered_children,
-            'highlighted': node_matches
+            'highlighted': node_matches or header_matches
         }
 
     return None
