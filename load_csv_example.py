@@ -35,6 +35,7 @@ MENU2;;Header for menu2;1;1;Admin
 MENU2;PROG1;Program 1;1;9;Admin
 MENU2;PROG2;Program 2;2;9;User"""
 
+
 df = pd.read_csv(StringIO(data), sep=';')
 
 # Clean up column names (lowercase and strip whitespace)

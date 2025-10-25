@@ -223,6 +223,18 @@
             font-weight: bold;
         }
 
+        .node.min-depth {
+            background: #001a33;
+            color: #5599ff;
+            font-weight: bold;
+        }
+
+        .node.max-depth {
+            background: #330000;
+            color: #ff6666;
+            font-weight: bold;
+        }
+
         .toggle {
             display: inline-block;
             width: 20px;
@@ -251,6 +263,14 @@
 
         .node.highlighted .node-name {
             color: #ffff00;
+        }
+
+        .node.min-depth .node-name {
+            color: #5599ff;
+        }
+
+        .node.max-depth .node-name {
+            color: #ff6666;
         }
 
         .user-types {
@@ -559,11 +579,25 @@
                 </select>
                 <button onclick="toggleAllNodes()">F9=EXPAND/COLLAPSE</button>
             </div>
+
+            {% if starting_menus %}
+            <div class="control-row">
+                <label for="startingMenu">STARTING MENU:</label>
+                <select id="startingMenu">
+                    <option value="All">ALL MENUS</option>
+                    {% for menu in starting_menus %}
+                    <option value="{{ menu }}">{{ menu|upper }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% endif %}
         </div>
 
         <div class="function-keys">
             <div class="function-key"><span>F3</span>=Exit</div>
             <div class="function-key"><span>F5</span>=Refresh</div>
+            <div class="function-key"><span>F6</span>=Min Depth</div>
+            <div class="function-key"><span>F7</span>=Max Depth</div>
             <div class="function-key"><span>F9</span>=Toggle All</div>
             <div class="function-key"><span>F12</span>=Cancel</div>
         </div>
@@ -576,6 +610,10 @@
             <div class="stat-item">
                 <span class="stat-label">ITEMS:</span>
                 <span class="stat-value" id="totalItems">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">MIN DEPTH:</span>
+                <span class="stat-value" id="minDepth">0</span>
             </div>
             <div class="stat-item">
                 <span class="stat-label">MAX DEPTH:</span>
@@ -642,6 +680,9 @@
     <script>
         let treeData = [];
         let allExpanded = false;
+        let currentMinDepth = 0;
+        let currentMaxDepth = 0;
+        let depthFilterMode = null; // null, 'min', or 'max'
 
         // Default color scheme for AS/400
         const defaultColors = {
@@ -873,6 +914,12 @@
                 if (e.key === 'F5') {
                     e.preventDefault();
                     loadTree();
+                } else if (e.key === 'F6') {
+                    e.preventDefault();
+                    toggleMinDepthFilter();
+                } else if (e.key === 'F7') {
+                    e.preventDefault();
+                    toggleMaxDepthFilter();
                 } else if (e.key === 'F9') {
                     e.preventDefault();
                     toggleAllNodes();
@@ -888,16 +935,25 @@
                 document.getElementById('currentUser').textContent = this.value.toUpperCase();
                 loadTree();
             });
+
+            // Auto-refresh when starting menu changes
+            const startingMenuSelect = document.getElementById('startingMenu');
+            if (startingMenuSelect) {
+                startingMenuSelect.addEventListener('change', function() {
+                    loadTree();
+                });
+            }
         });
 
         async function loadTree() {
             const search = document.getElementById('search').value;
             const userType = document.getElementById('userType').value;
+            const startingMenu = document.getElementById('startingMenu')?.value || 'All';
 
             document.getElementById('treeContainer').innerHTML = '<div class="loading"><span class="blink">▐</span> LOADING...</div>';
 
             try {
-                const response = await fetch(`/api/tree?search=${encodeURIComponent(search)}&user_type=${encodeURIComponent(userType)}`);
+                const response = await fetch(`/api/tree?search=${encodeURIComponent(search)}&user_type=${encodeURIComponent(userType)}&starting_menu=${encodeURIComponent(startingMenu)}`);
                 treeData = await response.json();
 
                 if (treeData.length === 0) {
@@ -927,7 +983,23 @@
             container.appendChild(ul);
         }
 
-        function createNodeElement(node, path = []) {
+        function nodeHasDepth(node, targetDepth, currentDepth = 1) {
+            // Check if this node or any of its descendants are at the target depth
+            if (!node.children || node.children.length === 0) {
+                // This is a leaf node
+                return currentDepth === targetDepth;
+            }
+
+            // Check children recursively
+            for (let child of node.children) {
+                if (nodeHasDepth(child, targetDepth, currentDepth + 1)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function createNodeElement(node, path = [], currentDepth = 1) {
             const li = document.createElement('li');
 
             // Build path with descriptions if available
@@ -938,7 +1010,18 @@
             const currentPath = [...path, pathEntry];
 
             const nodeDiv = document.createElement('div');
-            nodeDiv.className = 'node' + (node.highlighted ? ' highlighted' : '');
+            let className = 'node';
+
+            // Apply highlighting classes based on filter mode
+            if (node.highlighted) {
+                className += ' highlighted';
+            } else if (depthFilterMode === 'min' && nodeHasDepth(node, currentMinDepth, currentDepth)) {
+                className += ' min-depth';
+            } else if (depthFilterMode === 'max' && nodeHasDepth(node, currentMaxDepth, currentDepth)) {
+                className += ' max-depth';
+            }
+
+            nodeDiv.className = className;
 
             // Add click handler to show path
             nodeDiv.addEventListener('click', function(e) {
@@ -1044,7 +1127,7 @@
                         headerLi.appendChild(headerDiv);
                         childrenUl.appendChild(headerLi);
                     } else {
-                        childrenUl.appendChild(createNodeElement(item.data, currentPath));
+                        childrenUl.appendChild(createNodeElement(item.data, currentPath, currentDepth + 1));
                     }
                 });
 
@@ -1103,21 +1186,32 @@
             });
         }
 
-        function countMenusAndItems(nodes) {
+        function countMenusAndItems(nodes, uniqueItems = null) {
+            // Track unique items at the top level
+            const isTopLevel = uniqueItems === null;
+            if (isTopLevel) {
+                uniqueItems = new Set();
+            }
+
             let menus = 0;
             let items = 0;
 
             nodes.forEach(node => {
                 if (node.children && node.children.length > 0) {
                     menus++;
-                    const childCounts = countMenusAndItems(node.children);
+                    const childCounts = countMenusAndItems(node.children, uniqueItems);
                     menus += childCounts.menus;
                     items += childCounts.items;
                 } else {
+                    // This is an item (leaf node)
                     items++;
+                    uniqueItems.add(node.name);
                 }
             });
 
+            if (isTopLevel) {
+                return { menus, items, uniqueItems: uniqueItems.size };
+            }
             return { menus, items };
         }
 
@@ -1138,14 +1232,95 @@
             return maxDepth;
         }
 
+        function getMinDepth(nodes, currentDepth = 1) {
+            if (!nodes || nodes.length === 0) {
+                return currentDepth - 1;
+            }
+
+            let minDepth = Infinity;
+
+            nodes.forEach(node => {
+                if (node.children && node.children.length > 0) {
+                    const childDepth = getMinDepth(node.children, currentDepth + 1);
+                    minDepth = Math.min(minDepth, childDepth);
+                } else {
+                    // This is a leaf node (item, not a menu)
+                    minDepth = Math.min(minDepth, currentDepth);
+                }
+            });
+
+            return minDepth;
+        }
+
         function updateStats(data) {
             const counts = countMenusAndItems(data);
             const maxDepth = getMaxDepth(data);
+            const minDepth = getMinDepth(data);
+
+            // Store globally for depth filtering
+            currentMinDepth = minDepth;
+            currentMaxDepth = maxDepth;
 
             document.getElementById('totalMenus').textContent = counts.menus;
-            document.getElementById('totalItems').textContent = counts.items;
+            // Display as unique/total
+            document.getElementById('totalItems').textContent = `${counts.uniqueItems}/${counts.items}`;
+            document.getElementById('minDepth').textContent = minDepth;
             document.getElementById('maxDepth').textContent = maxDepth;
             document.getElementById('stats').style.display = 'flex';
+        }
+
+        function toggleMinDepthFilter() {
+            if (depthFilterMode === 'min') {
+                // Turn off filter
+                depthFilterMode = null;
+            } else {
+                // Turn on min depth filter
+                depthFilterMode = 'min';
+            }
+            renderTree(treeData);
+
+            // Auto-expand nodes that contain min-depth items
+            if (depthFilterMode === 'min') {
+                expandNodesWithClass('min-depth');
+            }
+        }
+
+        function toggleMaxDepthFilter() {
+            if (depthFilterMode === 'max') {
+                // Turn off filter
+                depthFilterMode = null;
+            } else {
+                // Turn on max depth filter
+                depthFilterMode = 'max';
+            }
+            renderTree(treeData);
+
+            // Auto-expand nodes that contain max-depth items
+            if (depthFilterMode === 'max') {
+                expandNodesWithClass('max-depth');
+            }
+        }
+
+        function expandNodesWithClass(className) {
+            // Find all nodes with the target class
+            const targetNodes = document.querySelectorAll(`.${className}`);
+
+            targetNodes.forEach(node => {
+                // Traverse up to find parent li elements and expand them
+                let current = node.closest('li');
+                while (current) {
+                    const childrenUl = current.querySelector(':scope > .children');
+                    if (childrenUl) {
+                        childrenUl.style.display = 'block';
+                        const toggle = current.querySelector(':scope > .node > .toggle');
+                        if (toggle && (toggle.textContent === '+' || toggle.textContent === '-')) {
+                            toggle.textContent = '-';
+                        }
+                    }
+                    // Move up to parent li
+                    current = current.parentElement.closest('li');
+                }
+            });
         }
     </script>
 </body>

@@ -61,6 +61,19 @@ df.columns = df.columns.str.strip().str.lower()
 df['to_menu'] = df['to_menu'].replace('', None)
 ```
 
+#### Automatic User Type Inference (Recommended for AS/400):
+If your data doesn't have a `USER_TYPE` column, you can automatically infer user types based on **starting menus**:
+
+```python
+# See load_csv_with_user_inference.py for complete example
+START_MENUS = {
+    'ADMINMENU': 'Admin',
+    'USERMENU': 'User'
+}
+```
+
+This will automatically tag all menus/programs reachable from each starting menu with the appropriate user type. See [STARTING_MENUS.md](STARTING_MENUS.md) for details.
+
 ### 2. Run the Application
 
 ```bash

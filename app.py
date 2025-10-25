@@ -329,17 +329,19 @@ df = pd.DataFrame({
 })
 
 
-def build_tree(dataframe, user_type_filter=None):
-    """Build a hierarchical tree structure from the DataFrame."""
-    # Filter by user type if specified
-    if user_type_filter and user_type_filter != 'All':
-        dataframe = dataframe[dataframe['user_type'] == user_type_filter]
+def build_tree(dataframe, user_type_filter=None, starting_menus=None):
+    """Build a hierarchical tree structure from the DataFrame.
 
+    Args:
+        dataframe: DataFrame with menu data
+        user_type_filter: Filter by user type ('All', 'Admin', etc.)
+        starting_menus: List of menu names that should be treated as roots (even if they're submenus)
+    """
     # Check if we have the new format with description and ordering
     has_description = 'description' in dataframe.columns
     has_ordering = 'menu_order' in dataframe.columns and 'header_order' in dataframe.columns
 
-    # Build adjacency list
+    # Build adjacency list from ALL data (don't filter yet)
     tree_dict = defaultdict(lambda: {
         'children': [],
         'user_types': set(),
@@ -361,13 +363,17 @@ def build_tree(dataframe, user_type_filter=None):
                 header_info = {
                     'text': row.get('description', ''),
                     'menu_order': row.get('menu_order', 0) if has_ordering else 0,
-                    'header_order': row.get('header_order', 0) if has_ordering else 0
+                    'header_order': row.get('header_order', 0) if has_ordering else 0,
+                    'user_type': user_type
                 }
                 tree_dict[from_menu]['headers'].append(header_info)
         else:
             # Handle regular menu items
             all_nodes.add(to_menu)
-            child_nodes.add(to_menu)
+
+            # Don't mark starting menus as children (they should be roots)
+            if not starting_menus or to_menu not in starting_menus:
+                child_nodes.add(to_menu)
 
             child_info = {
                 'name': to_menu,
@@ -380,10 +386,15 @@ def build_tree(dataframe, user_type_filter=None):
             tree_dict[from_menu]['user_types'].add(user_type)
             tree_dict[to_menu]['user_types'].add(user_type)
 
-    # Find root nodes (nodes that are not children of any other node)
-    root_nodes = all_nodes - child_nodes
+    # Find root nodes
+    if starting_menus:
+        # If starting menus are defined, use those as roots
+        root_nodes = set(starting_menus) & all_nodes
+    else:
+        # Otherwise, use nodes that are not children of any other node
+        root_nodes = all_nodes - child_nodes
 
-    def build_node(node_name, visited=None):
+    def build_node(node_name, visited=None, depth=0):
         """Recursively build tree structure."""
         if visited is None:
             visited = set()
@@ -393,27 +404,64 @@ def build_tree(dataframe, user_type_filter=None):
 
         visited.add(node_name)
 
+        # Deduplicate headers by text, menu_order, and header_order
+        # Also filter by user_type if specified
+        seen_headers = {}
+        for header in tree_dict[node_name]['headers']:
+            header_user_type = header.get('user_type', '')
+
+            # Skip if user_type filter is active and this header doesn't match
+            if user_type_filter and header_user_type != user_type_filter:
+                continue
+
+            header_key = (header.get('text', ''), header.get('menu_order', 0), header.get('header_order', 0))
+            if header_key not in seen_headers:
+                seen_headers[header_key] = header
+
         node = {
             'name': node_name,
             'user_types': sorted(list(tree_dict[node_name]['user_types'])),
-            'headers': sorted(tree_dict[node_name]['headers'],
+            'headers': sorted(seen_headers.values(),
                             key=lambda x: (x.get('menu_order', 0), x.get('header_order', 0))),
-            'children': []
+            'children': [],
+            'depth': depth
         }
 
+        # Deduplicate and filter children by name
+        seen_children = {}
+        for child_info in tree_dict[node_name]['children']:
+            child_name = child_info['name']
+
+            # Skip if we've already seen this child
+            if child_name in seen_children:
+                continue
+
+            # When filtering by user_type, check if the child node is accessible by that user
+            if user_type_filter:
+                child_user_types = tree_dict[child_name]['user_types']
+                node_accessible = user_type_filter in child_user_types
+                if not node_accessible:
+                    continue
+
+            seen_children[child_name] = child_info
+
         # Sort children by menu_order
-        sorted_children = sorted(tree_dict[node_name]['children'],
+        sorted_children = sorted(seen_children.values(),
                                 key=lambda x: x.get('menu_order', 0))
 
         for child_info in sorted_children:
             child_name = child_info['name']
-            child_node = build_node(child_name, visited.copy())
+            child_node = build_node(child_name, visited.copy(), depth + 1)
             if child_node:
                 # Add description to the child node
                 child_node['description'] = child_info.get('description', '')
                 child_node['menu_order'] = child_info.get('menu_order', 0)
                 node['children'].append(child_node)
 
+        # Don't prune leaf nodes - they are the actual programs/items we want to show
+        # Only prune intermediate menu nodes that have no accessible content
+        # However, we can't know if a node is a "leaf" until after we try to build its children
+        # So we just return the node and let the parent decide
         return node
 
     # Build tree for each root
@@ -431,7 +479,8 @@ def index():
     """Render the main page."""
     data = app.config.get('df', df)
     user_types = sorted(data['user_type'].unique().tolist()) if 'user_type' in data.columns else ['Admin']
-    return render_template('index.html', user_types=user_types)
+    starting_menus = app.config.get('starting_menus', [])
+    return render_template('index.html', user_types=user_types, starting_menus=starting_menus)
 
 
 @app.route('/as400')
@@ -439,7 +488,8 @@ def as400_theme():
     """Render the AS/400 themed page."""
     data = app.config.get('df', df)
     user_types = sorted(data['user_type'].unique().tolist()) if 'user_type' in data.columns else ['Admin']
-    return render_template('as400.html', user_types=user_types)
+    starting_menus = app.config.get('starting_menus', [])
+    return render_template('as400.html', user_types=user_types, starting_menus=starting_menus)
 
 
 @app.route('/api/tree')
@@ -447,11 +497,19 @@ def get_tree():
     """API endpoint to get the tree structure."""
     user_type = request.args.get('user_type', 'All')
     search = request.args.get('search', '').strip().lower()
+    starting_menu_filter = request.args.get('starting_menu', 'All')
 
     # Use custom dataframe if provided in app config, otherwise use default
     data = app.config.get('df', df)
 
-    tree = build_tree(data, user_type if user_type != 'All' else None)
+    # Get starting menus from config if available
+    starting_menus = app.config.get('starting_menus', None)
+
+    # If a specific starting menu is selected, use only that one
+    if starting_menu_filter and starting_menu_filter != 'All' and starting_menus:
+        starting_menus = [starting_menu_filter]
+
+    tree = build_tree(data, user_type if user_type != 'All' else None, starting_menus)
 
     # Filter tree by search if provided
     if search:
