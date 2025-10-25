@@ -929,7 +929,13 @@
 
         function createNodeElement(node, path = []) {
             const li = document.createElement('li');
-            const currentPath = [...path, node.name];
+
+            // Build path with descriptions if available
+            const pathEntry = {
+                name: node.name,
+                description: node.description || ''
+            };
+            const currentPath = [...path, pathEntry];
 
             const nodeDiv = document.createElement('div');
             nodeDiv.className = 'node' + (node.highlighted ? ' highlighted' : '');
@@ -1050,7 +1056,20 @@
 
         function displayPath(path) {
             const pathValue = document.getElementById('pathValue');
-            const pathString = path.join(' > ').toUpperCase();
+
+            // Build path string using descriptions if available, otherwise use names
+            const pathParts = path.map(item => {
+                if (typeof item === 'string') {
+                    // Old format - just a string
+                    return item;
+                } else {
+                    // New format - object with name and description
+                    // Prefer description, fall back to name
+                    return item.description || item.name;
+                }
+            });
+
+            const pathString = pathParts.join(' > ').toUpperCase();
             pathValue.textContent = pathString;
         }
 
